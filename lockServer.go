@@ -17,6 +17,8 @@ var lockMap = map[string]*lockCounter{}
 var uid int // uid its incrementing counter
 var mu sync.Mutex
 
+// write lock for a particular path it locks if the path is not already locked
+// using read lock or write lock, it returns lockID if successful otherwise -1
 func lock(path string) int {
 	// log.Println("lock path=", path)
 	mu.Lock()
@@ -38,6 +40,8 @@ func lock(path string) int {
 	}
 }
 
+// write unlock for a particular path and lockID it unlocks if the path and lockID is valid
+// that is if it was locked before using write lock. It returns true if successful otherwise false
 func unlock(path string, lockID int) bool {
 	// log.Println("unlock path=", path, ", id=", lockID)
 	mu.Lock()
@@ -57,6 +61,9 @@ func unlock(path string, lockID int) bool {
 	return true
 }
 
+// read lock for a particular path it locks if the path is not already locked
+// using write lock, it returns lockID if successful otherwise -1. multiple
+// readers allowed to have the read lock
 func rlock(path string) int {
 	// log.Println("rlock path=", path)
 	mu.Lock()
@@ -80,6 +87,9 @@ func rlock(path string) int {
 	}
 }
 
+// read unlock for a particular path and lockID it unlocks if the path and lockID is valid
+// that is if it was locked before using read lock. It returns true if successful otherwise false
+// read lock for the path released only if all the read lock holders releases the lock
 func runlock(path string, lockID int) bool {
 	// log.Println("runlock path=", path, ", id=", lockID, lockMap[path])
 	mu.Lock()
@@ -176,10 +186,10 @@ func runlockHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // The four REST APIs will look like this:
-// POST http://IP:port/lock?key=PATH
-// POST http://IP:port/unlock?key=PATH&lock-id=lockID
-// POST http://IP:port/rlock?key=PATH
-// POST http://IP:port/runlock?key=PATH&lock-id=lockID
+// POST http://localhost:8090/lock?key=PATH
+// POST http://localhost:8090/unlock?key=PATH&lock-id=lockID
+// POST http://localhost:8090/rlock?key=PATH
+// POST http://localhost:8090/runlock?key=PATH&lock-id=lockID
 func main() {
 	uid = 1
 	http.HandleFunc("/lock", lockHandler)
