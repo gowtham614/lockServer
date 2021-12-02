@@ -112,6 +112,10 @@ func runlock(path string, lockID int) bool {
 }
 
 func lHandler(w http.ResponseWriter, r *http.Request, readLock bool) {
+	if r.Method != "POST" {
+		fmt.Fprintf(w, "failure only post method is supported\n")
+		return
+	}
 	query := r.URL.Query()
 	if _, ok := query["key"]; !ok {
 		fmt.Fprintf(w, "failure\n")
@@ -133,6 +137,10 @@ func lHandler(w http.ResponseWriter, r *http.Request, readLock bool) {
 }
 
 func ulHandler(w http.ResponseWriter, r *http.Request, readUnLock bool) {
+	if r.Method != "POST" {
+		fmt.Fprintf(w, "failure only post method is supported\n")
+		return
+	}
 	query := r.URL.Query()
 	if _, ok := query["key"]; !ok {
 		fmt.Fprintf(w, "failure\n")
